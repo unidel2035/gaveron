@@ -11,7 +11,7 @@ class Config:
     """Gaveron server configuration."""
 
     # Feed source
-    feed_type: str = "beast"  # beast, sbs, json_file
+    feed_type: str = "beast"  # beast, beast_listen, sbs, json_file
     feed_host: str = "127.0.0.1"
     feed_port: int = 30005  # 30005 for beast, 30003 for sbs
     json_file_path: str = "/run/readsb/aircraft.json"

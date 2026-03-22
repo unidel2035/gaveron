@@ -131,6 +131,65 @@ class BeastFeed:
             self._writer.close()
 
 
+class BeastListener:
+    """Listens for incoming Beast binary connections.
+
+    Used when the receiver connects outbound to the server
+    (e.g., receiver behind NAT pushing data over the internet).
+    readsb --net-connector <server_ip>,<port>,beast_out
+    """
+
+    def __init__(self, store: AircraftStore, host: str = "0.0.0.0", port: int = 30005):
+        self.store = store
+        self.host = host
+        self.port = port
+        self._server: asyncio.AbstractServer | None = None
+        self._running = False
+        self._clients: set[asyncio.Task] = set()
+
+    async def _handle_client(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+        peer = writer.get_extra_info("peername")
+        logger.info("Beast client connected: %s", peer)
+        buffer = bytearray()
+        try:
+            while self._running:
+                data = await reader.read(4096)
+                if not data:
+                    break
+                buffer.extend(data)
+                frames = beast_extract_frames(buffer)
+                for msg_type, payload in frames:
+                    try:
+                        if msg_type == ord('2'):
+                            decode_mode_s_short(payload, self.store)
+                        elif msg_type == ord('3'):
+                            decode_mode_s_long(payload, self.store)
+                    except Exception as e:
+                        logger.debug("Beast decode error: %s", e)
+        except (ConnectionResetError, asyncio.CancelledError):
+            pass
+        except Exception as e:
+            logger.warning("Beast client error: %s", e)
+        finally:
+            logger.info("Beast client disconnected: %s", peer)
+            writer.close()
+
+    async def start(self):
+        self._running = True
+        self._server = await asyncio.start_server(
+            self._handle_client, self.host, self.port
+        )
+        addr = self._server.sockets[0].getsockname()
+        logger.info("Beast listener started on %s:%d — waiting for receivers", addr[0], addr[1])
+        async with self._server:
+            await self._server.serve_forever()
+
+    def stop(self):
+        self._running = False
+        if self._server:
+            self._server.close()
+
+
 class JSONFileFeed:
     """Reads aircraft.json from a file (e.g., from readsb/dump1090).
 

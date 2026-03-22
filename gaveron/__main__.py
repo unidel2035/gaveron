@@ -9,7 +9,7 @@ from pathlib import Path
 
 from .config import Config
 from .decoder import AircraftStore
-from .feed import BeastFeed, SBSFeed, JSONFileFeed
+from .feed import BeastFeed, BeastListener, SBSFeed, JSONFileFeed
 from .history import HistoryManager
 from .server import GaveronServer
 from .trackdb import TrackDB
@@ -26,7 +26,7 @@ def parse_args():
     )
     parser.add_argument(
         "--feed-type",
-        choices=["beast", "sbs", "json_file"],
+        choices=["beast", "beast_listen", "sbs", "json_file"],
         help="Data feed type (default: beast)",
     )
     parser.add_argument(
@@ -122,6 +122,8 @@ def main():
     # Select feed
     if config.feed_type == "beast":
         feed = BeastFeed(store, config.feed_host, config.feed_port)
+    elif config.feed_type == "beast_listen":
+        feed = BeastListener(store, config.http_host, config.feed_port)
     elif config.feed_type == "sbs":
         feed = SBSFeed(store, config.feed_host, config.feed_port)
     elif config.feed_type == "json_file":
