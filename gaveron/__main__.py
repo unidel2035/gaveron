@@ -5,12 +5,14 @@ import argparse
 import logging
 import signal
 import sys
+from pathlib import Path
 
 from .config import Config
 from .decoder import AircraftStore
 from .feed import BeastFeed, SBSFeed, JSONFileFeed
 from .history import HistoryManager
 from .server import GaveronServer
+from .trackdb import TrackDB
 
 
 def parse_args():
@@ -113,6 +115,10 @@ def main():
     # Create components
     store = AircraftStore(timeout=config.aircraft_timeout)
 
+    # Track database
+    db_path = str(Path(config.history_dir) / "gaveron_tracks.db")
+    trackdb = TrackDB(db_path=db_path, retention_hours=config.track_retention_hours)
+
     # Select feed
     if config.feed_type == "beast":
         feed = BeastFeed(store, config.feed_host, config.feed_port)
@@ -130,10 +136,12 @@ def main():
         interval=config.history_interval,
         history_size=config.history_size,
         chunk_size=config.chunk_size,
+        trackdb=trackdb,
     )
 
     server = GaveronServer(
         store,
+        trackdb=trackdb,
         history_dir=config.history_dir,
         host=config.http_host,
         port=config.http_port,

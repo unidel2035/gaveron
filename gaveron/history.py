@@ -27,16 +27,19 @@ class HistoryManager:
         interval: float = 8.0,
         history_size: int = 450,
         chunk_size: int = 20,
+        trackdb=None,
     ):
         self.store = store
         self.output_dir = Path(output_dir)
         self.interval = interval
         self.history_size = history_size
         self.chunk_size = chunk_size
+        self.trackdb = trackdb
 
         self._snapshots: deque = deque(maxlen=history_size)
         self._chunks: list[str] = []
         self._running = False
+        self._cleanup_counter = 0
 
     def ensure_dirs(self):
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -56,12 +59,29 @@ class HistoryManager:
         while self._running:
             try:
                 self._take_snapshot()
+                self._store_tracks()
                 self._maybe_write_chunk()
                 self._write_current()
                 self._write_chunks_index()
+                # Periodic DB cleanup (every ~5 min)
+                self._cleanup_counter += 1
+                if self._cleanup_counter >= int(300 / self.interval):
+                    self._cleanup_counter = 0
+                    if self.trackdb:
+                        self.trackdb.cleanup()
             except Exception as e:
                 logger.error("History error: %s", e)
             await asyncio.sleep(self.interval)
+
+    def _store_tracks(self):
+        """Store current positions in track database."""
+        if not self.trackdb:
+            return
+        try:
+            data = self.store.to_json()
+            self.trackdb.store_positions(data["aircraft"])
+        except Exception as e:
+            logger.debug("Track store error: %s", e)
 
     def _take_snapshot(self):
         """Take a snapshot of current aircraft state."""

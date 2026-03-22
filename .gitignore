@@ -6,3 +6,6 @@ build/
 .pytest_cache/
 *.egg
 .env
+gaveron/static/tar1090/
+*.db
+gaveron_tracks.db*
