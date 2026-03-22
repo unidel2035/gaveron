@@ -168,7 +168,7 @@ function fmtTime(ts) {
 }
 function fmtUTC(ts) {
   if (!ts) return '—';
-  return new Date(ts * 1000).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit', second:'2-digit', timeZone:'UTC'});
+  return new Date(ts * 1000).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit', second:'2-digit', timeZone:'UTC'}) + ' UTC';
 }
 function fmtDate(ts) {
   if (!ts) return '';
@@ -332,7 +332,7 @@ function drawTrack(icao, data, fitBounds) {
     radius: 6, color: '#00ff00', fillColor: '#00ff00', fillOpacity: 1, weight: 2
   });
   startMarker.bindTooltip(
-    `<div class="checkpoint-tooltip"><span class="cp-time">START ${fmtUTC(baseTs + first[0])} UTC</span><br>${callsign}</div>`,
+    `<div class="checkpoint-tooltip"><span class="cp-time">START ${fmtUTC(baseTs + first[0])}</span><br>${callsign}</div>`,
     { permanent: false, direction: 'top', className: 'checkpoint-tooltip' }
   );
   group.addLayer(startMarker);
@@ -343,7 +343,7 @@ function drawTrack(icao, data, fitBounds) {
     radius: 6, color: '#ff3333', fillColor: '#ff3333', fillOpacity: 1, weight: 2
   });
   endMarker.bindTooltip(
-    `<div class="checkpoint-tooltip"><span class="cp-time">END ${fmtUTC(baseTs + last[0])} UTC</span><br>${callsign} | ${endAlt}</div>`,
+    `<div class="checkpoint-tooltip"><span class="cp-time">END ${fmtUTC(baseTs + last[0])}</span><br>${callsign} | ${endAlt}</div>`,
     { permanent: false, direction: 'top', className: 'checkpoint-tooltip' }
   );
   group.addLayer(endMarker);
@@ -384,7 +384,7 @@ function drawTrack(icao, data, fitBounds) {
         // Detailed popup on hover (via popup instead)
         cp.bindPopup(
           `<div class="checkpoint-tooltip">` +
-          `<span class="cp-time">${utcTime} UTC</span> ${fmtDateUTC(ts)}<br>` +
+          `<span class="cp-time">${utcTime}</span> ${fmtDateUTC(ts)}<br>` +
           `<b>${callsign}</b><br>` +
           `<span class="cp-alt">${alt}</span> | <span class="cp-spd">${spd}</span>` +
           (vr ? ` | ${vr}` : '') +
