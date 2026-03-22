@@ -1,0 +1,32 @@
+# Gaveron ADS-B Server Configuration
+# Copy to /etc/gaveron/gaveron.yaml or pass via --config
+
+# Feed source type: beast, sbs, json_file
+feed_type: beast
+
+# Feed connection (for beast/sbs)
+feed_host: "127.0.0.1"
+feed_port: 30005  # 30005 for beast, 30003 for sbs
+
+# Path to aircraft.json (for json_file feed type)
+json_file_path: "/run/readsb/aircraft.json"
+
+# HTTP server
+http_host: "0.0.0.0"
+http_port: 8080
+
+# Receiver location (used for distance calculations)
+receiver_lat: 55.7558  # Moscow
+receiver_lon: 37.6173
+
+# History settings
+history_dir: "/run/gaveron"
+history_interval: 8.0   # seconds between snapshots
+history_size: 450        # total snapshots (450 * 8s = 1 hour)
+chunk_size: 20           # snapshots per chunk file
+
+# Aircraft timeout (remove after N seconds without messages)
+aircraft_timeout: 300
+
+# Logging: DEBUG, INFO, WARNING, ERROR
+log_level: INFO

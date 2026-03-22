@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gaveron"
+version = "0.1.0"
+description = "ADS-B aircraft tracking server"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+
+dependencies = [
+    "aiohttp>=3.9",
+]
+
+[project.optional-dependencies]
+yaml = ["pyyaml>=6.0"]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "pytest-aiohttp>=1.0",
+]
+
+[project.scripts]
+gaveron = "gaveron.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["gaveron*"]

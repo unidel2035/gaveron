@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  gaveron:
+    build: .
+    container_name: gaveron
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      # Feed from readsb/dump1090 running on the host
+      GAVERON_FEED_TYPE: beast
+      GAVERON_FEED_HOST: host.docker.internal
+      GAVERON_FEED_PORT: "30005"
+      GAVERON_HTTP_PORT: "8080"
+      GAVERON_LAT: "55.7558"
+      GAVERON_LON: "37.6173"
+      GAVERON_LOG_LEVEL: INFO
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    tmpfs:
+      - /run/gaveron:size=50M
+
+  # Optional: run readsb decoder alongside gaveron
+  # Uncomment if you have an RTL-SDR dongle connected
+  #
+  # readsb:
+  #   image: ghcr.io/sdr-enthusiasts/docker-readsb-protobuf:latest
+  #   container_name: readsb
+  #   restart: unless-stopped
+  #   devices:
+  #     - /dev/bus/usb:/dev/bus/usb
+  #   ports:
+  #     - "30003:30003"  # SBS
+  #     - "30005:30005"  # Beast
+  #   environment:
+  #     READSB_DEVICE_TYPE: rtlsdr
+  #     READSB_FIX: "true"
+  #     READSB_GAIN: "autogain"
+  #     READSB_LAT: "55.7558"
+  #     READSB_LON: "37.6173"
+  #     READSB_NET_ENABLE: "true"
+  #     READSB_STATS_RANGE: "true"
+  #   tmpfs:
+  #     - /run/readsb:size=64M

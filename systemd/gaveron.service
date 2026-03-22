@@ -1,0 +1,17 @@
+[Unit]
+Description=Gaveron ADS-B Tracking Server
+After=network.target readsb.service
+Wants=readsb.service
+
+[Service]
+Type=simple
+User=gaveron
+RuntimeDirectory=gaveron
+ExecStart=/usr/bin/python3 -m gaveron --config /etc/gaveron/gaveron.yaml
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
