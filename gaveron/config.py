@@ -34,7 +34,7 @@ class Config:
     aircraft_timeout: float = 300.0
 
     # Track database retention (hours)
-    track_retention_hours: float = 72.0
+    track_retention_hours: float = 2400.0  # 100 days
 
     # Logging
     log_level: str = "INFO"
@@ -56,7 +56,7 @@ class Config:
             history_size=int(os.getenv("GAVERON_HISTORY_SIZE", "450")),
             chunk_size=int(os.getenv("GAVERON_CHUNK_SIZE", "20")),
             aircraft_timeout=float(os.getenv("GAVERON_AIRCRAFT_TIMEOUT", "300")),
-            track_retention_hours=float(os.getenv("GAVERON_TRACK_RETENTION_HOURS", "72")),
+            track_retention_hours=float(os.getenv("GAVERON_TRACK_RETENTION_HOURS", "2400")),
             log_level=os.getenv("GAVERON_LOG_LEVEL", "INFO"),
         )
 
@@ -86,6 +86,6 @@ class Config:
             history_size=data.get("history_size", 450),
             chunk_size=data.get("chunk_size", 20),
             aircraft_timeout=data.get("aircraft_timeout", 300.0),
-            track_retention_hours=data.get("track_retention_hours", 72.0),
+            track_retention_hours=data.get("track_retention_hours", 2400.0),
             log_level=data.get("log_level", "INFO"),
         )

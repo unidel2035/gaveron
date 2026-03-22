@@ -50,16 +50,25 @@ class GaveronServer:
         self.app.router.add_get(
             "/data/traces/{hex2}/{filename}", self.handle_trace_file
         )
+        self.app.router.add_get(
+            "/globe_history/{year}/{month}/{day}/traces/{hex2}/{filename}",
+            self.handle_globe_history_trace,
+        )
         self.app.router.add_get("/chunks/chunks.json", self.handle_chunks_index)
         self.app.router.add_get("/chunks/{filename}", self.handle_chunk_file)
         self.app.router.add_get("/health", self.handle_health)
 
         # Track history API
+        self.app.router.add_get("/api/dates", self.handle_available_dates)
+        self.app.router.add_get("/api/aircraft-by-date", self.handle_aircraft_by_date)
         self.app.router.add_get("/api/tracks/{icao}", self.handle_track)
         self.app.router.add_get("/api/tracks", self.handle_all_tracks)
         self.app.router.add_get("/api/heatmap", self.handle_heatmap)
         self.app.router.add_get("/api/history", self.handle_history_list)
         self.app.router.add_get("/api/db-stats", self.handle_db_stats)
+
+        # History browser page
+        self.app.router.add_get("/history", self.handle_history_page)
 
         # Web UI — tar1090 frontend
         tar1090_dir = Path(__file__).parent / "static" / "tar1090"
@@ -238,13 +247,81 @@ class GaveronServer:
             headers={"Cache-Control": "no-cache"},
         )
 
+    async def handle_globe_history_trace(self, request: web.Request) -> web.Response:
+        """Serve historical trace data for tar1090 date picker.
+
+        tar1090 requests: globe_history/YYYY/MM/DD/traces/XX/trace_full_HEX.json
+        """
+        year = request.match_info["year"]
+        month = request.match_info["month"]
+        day = request.match_info["day"]
+        filename = request.match_info["filename"]
+
+        if ".." in filename or "/" in filename:
+            raise web.HTTPBadRequest(text="Invalid filename")
+        if not filename.endswith(".json") or not filename.startswith("trace_full_"):
+            raise web.HTTPNotFound()
+
+        icao = filename[len("trace_full_"):-5].lower()
+        date_str = f"{year}-{month}-{day}"
+
+        positions = self.trackdb.get_track_by_date(icao, date_str)
+        if not positions:
+            raise web.HTTPNotFound()
+
+        base_ts = positions[0]["ts"]
+        trace = []
+        for p in positions:
+            extra = {}
+            if p.get("flight"):
+                extra["flight"] = p["flight"].strip()
+            point = [
+                round(p["ts"] - base_ts, 1),
+                round(p["lat"], 6),
+                round(p["lon"], 6),
+                p.get("alt_baro") or "ground",
+                round(p["gs"], 1) if p.get("gs") else None,
+                round(p["track"], 1) if p.get("track") else None,
+                0,
+                p.get("vert_rate") or 0,
+                extra if extra else None,
+            ]
+            trace.append(point)
+
+        data = {"timestamp": round(base_ts, 1), "trace": trace}
+        return web.json_response(data, headers={"Cache-Control": "max-age=300"})
+
+    async def handle_history_page(self, request: web.Request) -> web.Response:
+        """Serve the history browser page."""
+        html_path = Path(__file__).parent / "static" / "history.html"
+        if html_path.exists():
+            return web.FileResponse(html_path)
+        raise web.HTTPNotFound(text="History page not found")
+
     # ---- Track history API ----
+
+    async def handle_available_dates(self, request: web.Request) -> web.Response:
+        """Get list of dates with track data."""
+        dates = self.trackdb.get_available_dates()
+        return web.json_response({"dates": dates})
+
+    async def handle_aircraft_by_date(self, request: web.Request) -> web.Response:
+        """Get aircraft seen on a specific date."""
+        date_str = request.query.get("date")
+        if not date_str:
+            raise web.HTTPBadRequest(text="Missing 'date' parameter (YYYY-MM-DD)")
+        aircraft = self.trackdb.get_aircraft_by_date(date_str)
+        return web.json_response({
+            "date": date_str,
+            "count": len(aircraft),
+            "aircraft": aircraft,
+        })
 
     async def handle_track(self, request: web.Request) -> web.Response:
         """Get track history for a specific aircraft."""
         icao = request.match_info["icao"].lower()
         hours = float(request.query.get("hours", "24"))
-        hours = min(hours, 72)  # cap at retention
+        hours = min(hours, 2400)  # cap at retention (100 days)
         track = self.trackdb.get_track(icao, hours)
         return web.json_response({
             "icao": icao,

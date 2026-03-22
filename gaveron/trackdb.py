@@ -1,9 +1,11 @@
 """Track database — stores aircraft position history in SQLite."""
 
+import calendar
 import logging
 import sqlite3
 import time
 import threading
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -212,6 +214,54 @@ class TrackDB:
             "db_size_mb": round(db_size / 1048576, 2),
             "retention_hours": round(self.retention_seconds / 3600),
         }
+
+    def get_track_by_date(self, icao: str, date_str: str) -> list[dict]:
+        """Get track for an aircraft on a specific date (YYYY-MM-DD, UTC)."""
+        dt = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        ts_start = dt.timestamp()
+        ts_end = ts_start + 86400
+        with self._connect() as conn:
+            rows = conn.execute(
+                """SELECT ts, lat, lon, alt_baro, alt_geom, gs, track,
+                          vert_rate, flight, squawk
+                   FROM positions
+                   WHERE icao = ? AND ts >= ? AND ts < ?
+                   ORDER BY ts ASC""",
+                (icao, ts_start, ts_end),
+            ).fetchall()
+        return [dict(r) for r in rows]
+
+    def get_aircraft_by_date(self, date_str: str) -> list[dict]:
+        """Get all aircraft seen on a specific date (YYYY-MM-DD, UTC)."""
+        dt = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        ts_start = dt.timestamp()
+        ts_end = ts_start + 86400
+        with self._connect() as conn:
+            rows = conn.execute(
+                """SELECT icao,
+                          MAX(flight) as flight,
+                          MAX(category) as category,
+                          MAX(squawk) as squawk,
+                          MIN(ts) as first_seen,
+                          MAX(ts) as last_seen,
+                          COUNT(*) as positions
+                   FROM positions
+                   WHERE ts >= ? AND ts < ?
+                   GROUP BY icao
+                   ORDER BY last_seen DESC""",
+                (ts_start, ts_end),
+            ).fetchall()
+        return [dict(r) for r in rows]
+
+    def get_available_dates(self) -> list[str]:
+        """Get list of dates that have track data (YYYY-MM-DD, UTC)."""
+        with self._connect() as conn:
+            rows = conn.execute(
+                """SELECT DISTINCT DATE(ts, 'unixepoch') as d
+                   FROM positions
+                   ORDER BY d DESC""",
+            ).fetchall()
+        return [r["d"] for r in rows]
 
     def cleanup(self):
         """Remove data older than retention period."""
