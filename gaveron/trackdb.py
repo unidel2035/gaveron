@@ -71,7 +71,11 @@ class TrackDB:
         return conn
 
     def store_positions(self, aircraft_list: list[dict]):
-        """Store current aircraft positions (batch insert)."""
+        """Store current aircraft positions (batch insert).
+
+        Uses per-aircraft timestamp based on seen_pos (seconds since last
+        position from ADS-B source) for accurate timing.
+        """
         now = time.time()
         rows = []
         info_updates = []
@@ -82,10 +86,14 @@ class TrackDB:
             if lat is None or lon is None:
                 continue
 
+            # Use ADS-B source timestamp: now - seen_pos
+            seen_pos = ac.get("seen_pos", 0) or 0
+            ts = now - seen_pos
+
             icao = ac["hex"]
             flight = ac.get("flight", "").strip() or None
             rows.append((
-                now, icao, flight, lat, lon,
+                ts, icao, flight, lat, lon,
                 ac.get("alt_baro"), ac.get("alt_geom"),
                 ac.get("gs"), ac.get("track"),
                 ac.get("vert_rate"), ac.get("squawk"),
@@ -93,7 +101,7 @@ class TrackDB:
             ))
             info_updates.append((
                 icao, flight, ac.get("category"),
-                ac.get("squawk"), now,
+                ac.get("squawk"), ts,
             ))
 
         if not rows:
