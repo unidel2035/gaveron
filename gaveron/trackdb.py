@@ -307,6 +307,62 @@ class TrackDB:
             ).fetchall()
         return [r["d"] for r in rows]
 
+    def delete_track(self, icao: str) -> int:
+        """Delete all positions for a specific aircraft."""
+        with self._lock:
+            with self._connect() as conn:
+                deleted = conn.execute(
+                    "DELETE FROM positions WHERE icao = ?", (icao,)
+                ).rowcount
+                conn.execute("DELETE FROM aircraft_info WHERE icao = ?", (icao,))
+                logger.info("Deleted %d positions for %s", deleted, icao)
+        return deleted
+
+    def delete_by_date(self, date_str: str) -> int:
+        """Delete all positions for a specific date (YYYY-MM-DD, UTC)."""
+        dt = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        ts_start = dt.timestamp()
+        ts_end = ts_start + 86400
+        with self._lock:
+            with self._connect() as conn:
+                deleted = conn.execute(
+                    "DELETE FROM positions WHERE ts >= ? AND ts < ?",
+                    (ts_start, ts_end),
+                ).rowcount
+                # Clean up aircraft_info for aircraft with no remaining positions
+                conn.execute(
+                    """DELETE FROM aircraft_info WHERE icao NOT IN
+                       (SELECT DISTINCT icao FROM positions)"""
+                )
+                logger.info("Deleted %d positions for date %s", deleted, date_str)
+        return deleted
+
+    def delete_by_range(self, date_from: str, date_to: str) -> int:
+        """Delete all positions in a date range (YYYY-MM-DD, UTC)."""
+        ts_start = datetime.strptime(date_from, "%Y-%m-%d").replace(tzinfo=timezone.utc).timestamp()
+        ts_end = datetime.strptime(date_to, "%Y-%m-%d").replace(tzinfo=timezone.utc).timestamp() + 86400
+        with self._lock:
+            with self._connect() as conn:
+                deleted = conn.execute(
+                    "DELETE FROM positions WHERE ts >= ? AND ts < ?",
+                    (ts_start, ts_end),
+                ).rowcount
+                conn.execute(
+                    """DELETE FROM aircraft_info WHERE icao NOT IN
+                       (SELECT DISTINCT icao FROM positions)"""
+                )
+                logger.info("Deleted %d positions for %s — %s", deleted, date_from, date_to)
+        return deleted
+
+    def delete_all(self) -> int:
+        """Delete all track data."""
+        with self._lock:
+            with self._connect() as conn:
+                deleted = conn.execute("DELETE FROM positions").rowcount
+                conn.execute("DELETE FROM aircraft_info")
+                logger.info("Deleted all track data: %d positions", deleted)
+        return deleted
+
     def cleanup(self):
         """Remove data older than retention period."""
         cutoff = time.time() - self.retention_seconds

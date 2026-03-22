@@ -42,6 +42,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .aircraft-item .icao { color: #888; font-size: 10px; font-family: monospace; }
 .aircraft-item .meta { text-align: right; font-size: 10px; color: #aaa; }
 .aircraft-item .pts { color: #00d2ff; }
+.del-btn { background: none; border: none; color: #ff6b6b; font-size: 14px; cursor: pointer; padding: 0 2px; opacity: 0.5; }
+.del-btn:hover { opacity: 1; }
 
 .search-box { padding: 6px 14px; border-bottom: 1px solid #0f3460; }
 .search-box input { width: 100%; background: #0f3460; color: #fff; border: 1px solid #1a5276; padding: 5px 10px; border-radius: 4px; font-size: 12px; }
@@ -99,6 +101,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <button id="btnMonth">Месяц</button>
     <span class="sep">|</span>
     <button id="btnShowAll">Все треки</button>
+    <span class="sep">|</span>
+    <button id="btnDeleteRange" style="color:#ff6b6b;">Удалить за период</button>
+    <button id="btnDeleteAll" style="color:#ff6b6b;">Очистить всё</button>
   </div>
   <div class="date-chips" id="dateChips"></div>
 </div>
@@ -262,7 +267,9 @@ function renderList(aircraft) {
       <div class="meta">
         <div class="pts">${ac.positions} pts</div>
         <div>${timeStr}</div>
+        <button class="del-btn" title="Удалить трек">&times;</button>
       </div>`;
+    item.querySelector('.del-btn').onclick = (e) => { e.stopPropagation(); deleteTrack(ac.icao); };
     item.onclick = () => selectAircraft(ac.icao);
     listEl.appendChild(item);
   });
@@ -494,6 +501,49 @@ document.getElementById('btnMonth').addEventListener('click', () => {
 });
 document.getElementById('btnShowAll').addEventListener('click', showAllTracks);
 document.getElementById('btnShowAllSidebar').addEventListener('click', showAllTracks);
+
+// ---- Delete functions ----
+
+async function deleteTrack(icao) {
+  if (!confirm('Удалить все треки ' + icao.toUpperCase() + '?')) return;
+  try {
+    const resp = await fetch('/api/tracks/' + icao, { method: 'DELETE' });
+    const data = await resp.json();
+    document.getElementById('statusBar').textContent = 'Удалено ' + data.deleted_positions + ' точек для ' + icao.toUpperCase();
+    loadRange();
+  } catch(e) { console.error(e); }
+}
+
+document.getElementById('btnDeleteRange').addEventListener('click', async () => {
+  const from = dateFrom.value, to = dateTo.value;
+  if (!from || !to) return;
+  const label = (from === to) ? from : from + ' — ' + to;
+  if (!confirm('Удалить все треки за ' + label + '?')) return;
+  try {
+    const url = (from === to)
+      ? '/api/tracks-by-date?date=' + from
+      : '/api/tracks-by-range?from=' + from + '&to=' + to;
+    const resp = await fetch(url, { method: 'DELETE' });
+    const data = await resp.json();
+    document.getElementById('statusBar').textContent = 'Удалено ' + data.deleted_positions + ' точек за ' + label;
+    clearAll();
+    loadDates();
+    loadRange();
+  } catch(e) { console.error(e); }
+});
+
+document.getElementById('btnDeleteAll').addEventListener('click', async () => {
+  if (!confirm('Удалить ВСЕ треки из архива? Это действие необратимо!')) return;
+  if (!confirm('Точно удалить? Все данные будут потеряны.')) return;
+  try {
+    const resp = await fetch('/api/tracks-all', { method: 'DELETE' });
+    const data = await resp.json();
+    document.getElementById('statusBar').textContent = 'Архив очищен: удалено ' + data.deleted_positions + ' точек';
+    clearAll();
+    loadDates();
+    loadRange();
+  } catch(e) { console.error(e); }
+});
 
 // Re-draw checkpoints when settings change
 document.getElementById('cbCheckpoints').addEventListener('change', () => {

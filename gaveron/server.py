@@ -69,6 +69,12 @@ class GaveronServer:
         self.app.router.add_get("/api/history", self.handle_history_list)
         self.app.router.add_get("/api/db-stats", self.handle_db_stats)
 
+        # Track deletion API
+        self.app.router.add_delete("/api/tracks/{icao}", self.handle_delete_track)
+        self.app.router.add_delete("/api/tracks-by-date", self.handle_delete_by_date)
+        self.app.router.add_delete("/api/tracks-by-range", self.handle_delete_by_range)
+        self.app.router.add_delete("/api/tracks-all", self.handle_delete_all)
+
         # History browser page
         self.app.router.add_get("/history", self.handle_history_page)
 
@@ -416,6 +422,36 @@ class GaveronServer:
         """Get database statistics."""
         stats = self.trackdb.get_stats()
         return web.json_response(stats)
+
+    # ---- Track deletion API ----
+
+    async def handle_delete_track(self, request: web.Request) -> web.Response:
+        """Delete all track data for a specific aircraft."""
+        icao = request.match_info["icao"].lower()
+        deleted = self.trackdb.delete_track(icao)
+        return web.json_response({"icao": icao, "deleted_positions": deleted})
+
+    async def handle_delete_by_date(self, request: web.Request) -> web.Response:
+        """Delete all tracks for a specific date."""
+        date_str = request.query.get("date")
+        if not date_str:
+            raise web.HTTPBadRequest(text="Missing 'date' parameter (YYYY-MM-DD)")
+        deleted = self.trackdb.delete_by_date(date_str)
+        return web.json_response({"date": date_str, "deleted_positions": deleted})
+
+    async def handle_delete_by_range(self, request: web.Request) -> web.Response:
+        """Delete all tracks in a date range."""
+        date_from = request.query.get("from")
+        date_to = request.query.get("to")
+        if not date_from or not date_to:
+            raise web.HTTPBadRequest(text="Missing 'from' and 'to' parameters (YYYY-MM-DD)")
+        deleted = self.trackdb.delete_by_range(date_from, date_to)
+        return web.json_response({"from": date_from, "to": date_to, "deleted_positions": deleted})
+
+    async def handle_delete_all(self, request: web.Request) -> web.Response:
+        """Delete all track data."""
+        deleted = self.trackdb.delete_all()
+        return web.json_response({"deleted_positions": deleted})
 
     async def start(self):
         runner = web.AppRunner(self.app)
