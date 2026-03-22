@@ -477,13 +477,13 @@ def _decode_airborne_position(payload: bytes, ac: Aircraft, gnss: bool = False):
     """
     tc = (payload[4] >> 3) & 0x1F
 
-    # Altitude
+    # Altitude (12-bit field: C1 A1 C2 A2 C4 A4 Q B1 D1 B2 D2 B4)
     alt_bits = ((payload[5] & 0xFF) << 4) | ((payload[6] >> 4) & 0x0F)
-    q_bit = (alt_bits >> 4) & 1
+    q_bit = (alt_bits >> 7) & 1  # Q at bit 7 (index 4 from MSB in 12-bit)
 
     if q_bit:
-        # Q-bit set: 25ft resolution
-        n = ((alt_bits >> 5) << 4) | (alt_bits & 0x0F)
+        # Q-bit set: 25ft resolution, remove Q bit, N = remaining 11 bits
+        n = ((alt_bits >> 8) << 7) | (alt_bits & 0x7F)
         altitude = n * 25 - 1000
     else:
         # Gillham code: 100ft resolution (simplified)
@@ -649,13 +649,21 @@ def _decode_airborne_velocity(payload: bytes, ac: Aircraft):
 
 
 def _decode_ac13(payload: bytes) -> Optional[int]:
-    """Decode altitude from AC13 field (13 bits in payload[2:4])."""
+    """Decode altitude from AC13 field (13 bits in payload[2:4]).
+
+    13-bit field: C1 A1 C2 A2 C4 A4 M B1 Q D1 B2 D2 B4
+    When Q=1: remove M (bit 6) and Q (bit 4), remaining 11 bits * 25 - 1000
+    """
     ac13 = ((payload[2] & 0x1F) << 8) | payload[3]
     if ac13 == 0:
         return None
+    m_bit = (ac13 >> 6) & 1
     q_bit = (ac13 >> 4) & 1
+    if m_bit:
+        return None  # metric altitude, not supported
     if q_bit:
-        n = ((ac13 >> 5) << 4) | (ac13 & 0x0F)
+        # Remove M (bit 6) and Q (bit 4): keep bits 12-7, bit 5, bits 3-0
+        n = ((ac13 >> 7) << 5) | (((ac13 >> 5) & 1) << 4) | (ac13 & 0x0F)
         return n * 25 - 1000
     return None
 
