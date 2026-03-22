@@ -86,6 +86,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 /* Aircraft icon at end of track */
 .aircraft-icon { background: none !important; border: none !important; box-shadow: none !important; font-size: 22px !important; text-shadow: 0 0 4px #000, 0 0 6px #000; line-height: 24px !important; text-align: center !important; }
 .aircraft-icon::before { display: none !important; }
+
+/* Closest point to reference marker */
+.closest-label { background: rgba(255,107,107,0.9) !important; border: 1px solid #ff4444 !important; color: #fff !important; font-size: 10px !important; font-weight: 600 !important; padding: 2px 5px !important; border-radius: 3px !important; white-space: nowrap !important; }
+.closest-label::before { display: none !important; }
+.ref-point-icon { background: none !important; border: none !important; box-shadow: none !important; font-size: 18px !important; line-height: 20px !important; text-align: center !important; }
+.ref-point-icon::before { display: none !important; }
 </style>
 </head>
 <body>
@@ -138,6 +144,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
         <option value="Etc/GMT-4">Ижевск (UTC+4)</option>
       </select>
       <button id="btnTzCustom" style="font-size:10px;padding:2px 6px;" title="Добавить свой часовой пояс">+</button>
+    </div>
+    <div class="cp-controls" id="refPointControls">
+      <label style="white-space:nowrap;">Контр. точка:</label>
+      <input type="text" id="refCoords" placeholder="lat, lon" style="width:150px;background:#0f3460;color:#fff;border:1px solid #1a5276;padding:3px 5px;border-radius:4px;font-size:11px;">
+      <button id="btnRefSave" style="font-size:10px;padding:2px 6px;" title="Сохранить">✓</button>
+      <button id="btnRefClear" style="font-size:10px;padding:2px 6px;" title="Очистить">✕</button>
     </div>
     <div class="sidebar-header">
       <span>Самолёты</span>
@@ -235,6 +247,50 @@ function tzLabel() {
 }
 
 function tzOpt() { return { timeZone: getSelectedTz() }; }
+
+// ---- Reference point (closest distance) ----
+function haversineKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function getRefPoint() {
+  try {
+    const data = JSON.parse(localStorage.getItem('gaveron_refpoint'));
+    if (data && typeof data.lat === 'number' && typeof data.lon === 'number') return data;
+  } catch {}
+  return null;
+}
+function saveRefPoint(lat, lon) {
+  localStorage.setItem('gaveron_refpoint', JSON.stringify({lat, lon}));
+}
+function clearRefPoint() {
+  localStorage.removeItem('gaveron_refpoint');
+}
+
+let refPointMarker = null;
+
+function showRefPointOnMap() {
+  if (refPointMarker) { map.removeLayer(refPointMarker); refPointMarker = null; }
+  const ref = getRefPoint();
+  if (!ref) return;
+  refPointMarker = L.marker([ref.lat, ref.lon], {
+    icon: L.icon({ iconUrl: '/static/tar1090/images/flag-marker.svg', iconSize: [24, 32], iconAnchor: [4, 32] }),
+    zIndexOffset: 1000
+  });
+  refPointMarker.bindTooltip(`Контр. точка<br>${ref.lat.toFixed(5)}, ${ref.lon.toFixed(5)}`, {
+    permanent: false, direction: 'top', className: 'checkpoint-tooltip'
+  });
+  refPointMarker.addTo(map);
+}
+
+function fmtDist(km) {
+  if (km < 1) return (km * 1000).toFixed(0) + ' м';
+  return km.toFixed(1) + ' км';
+}
 
 // ---- Time formatting (timezone-aware) ----
 function fmtTime(ts) {
@@ -504,6 +560,45 @@ function drawTrack(icao, data, fitBounds) {
   );
   group.addLayer(endMarker);
 
+  // Closest point to reference
+  const ref = getRefPoint();
+  if (ref) {
+    let minDist = Infinity, minIdx = 0;
+    for (let i = 0; i < data.trace.length; i++) {
+      const p = data.trace[i];
+      const d = haversineKm(ref.lat, ref.lon, p[1], p[2]);
+      if (d < minDist) { minDist = d; minIdx = i; }
+    }
+    const cp = data.trace[minIdx];
+    const cpTs = baseTs + cp[0];
+    const distLabel = fmtDist(minDist);
+
+    // Line from reference to closest point
+    const distLine = L.polyline([[ref.lat, ref.lon], [cp[1], cp[2]]], {
+      color: '#ff4444', weight: 1.5, opacity: 0.7, dashArray: '6,4'
+    });
+    group.addLayer(distLine);
+
+    // Marker at closest point
+    const closestMarker = L.circleMarker([cp[1], cp[2]], {
+      radius: 5, color: '#ff4444', fillColor: '#ff4444', fillOpacity: 0.8, weight: 2
+    });
+    closestMarker.bindTooltip(`${distLabel} | ${fmtTimeShort(cpTs)}`, {
+      permanent: true, direction: 'bottom', className: 'closest-label', offset: [0, 6]
+    });
+    closestMarker.bindPopup(
+      `<div class="checkpoint-tooltip">` +
+      `<span class="cp-time">Ближайшая точка</span><br>` +
+      `<b>${callsign}</b><br>` +
+      `Расстояние: <b>${distLabel}</b><br>` +
+      `${fmtFullDateTime(cpTs)}<br>` +
+      `Высота: ${cp[3] === 'ground' ? 'GND' : (cp[3] != null ? cp[3] + ' ft' : '—')}` +
+      `</div>`,
+      { className: 'checkpoint-tooltip' }
+    );
+    group.addLayer(closestMarker);
+  }
+
   group.addTo(map);
   trackLayers[icao] = group;
 
@@ -708,8 +803,43 @@ function reloadCurrentView() {
   renderList(allAircraft);
 }
 
+// ---- Reference point controls ----
+
+function parseCoords(str) {
+  const m = str.trim().match(/^(-?\d+\.?\d*)\s*[,;\s]\s*(-?\d+\.?\d*)$/);
+  if (!m) return null;
+  const lat = parseFloat(m[1]), lon = parseFloat(m[2]);
+  if (isNaN(lat) || isNaN(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) return null;
+  return { lat, lon };
+}
+
+function initRefPoint() {
+  const ref = getRefPoint();
+  if (ref) {
+    document.getElementById('refCoords').value = `${ref.lat}, ${ref.lon}`;
+  }
+  showRefPointOnMap();
+}
+
+document.getElementById('btnRefSave').addEventListener('click', () => {
+  const coords = parseCoords(document.getElementById('refCoords').value);
+  if (!coords) { alert('Формат: lat, lon (например: 56.865190, 53.368229)'); return; }
+  saveRefPoint(coords.lat, coords.lon);
+  document.getElementById('refCoords').value = `${coords.lat}, ${coords.lon}`;
+  showRefPointOnMap();
+  reloadCurrentView();
+});
+
+document.getElementById('btnRefClear').addEventListener('click', () => {
+  clearRefPoint();
+  document.getElementById('refCoords').value = '';
+  showRefPointOnMap();
+  reloadCurrentView();
+});
+
 // Init
 initTzSelector();
+initRefPoint();
 loadDates();
 loadRange();
 </script>
