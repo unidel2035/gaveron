@@ -72,6 +72,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .cp-controls select { background: #0f3460; color: #fff; border: 1px solid #1a5276; padding: 3px 6px; border-radius: 4px; font-size: 11px; }
 .cp-controls .cb { display: flex; align-items: center; gap: 4px; }
 .cp-controls input[type="checkbox"] { accent-color: #00d2ff; }
+
+/* Permanent track label */
+.track-label { background: none !important; border: none !important; box-shadow: none !important; color: #fff !important; font-size: 11px !important; font-weight: 700 !important; text-shadow: 0 0 4px #000, 0 0 4px #000, 1px 1px 2px #000 !important; padding: 0 !important; white-space: nowrap !important; }
+.track-label::before { display: none !important; }
+
+/* Permanent UTC time label on checkpoint */
+.cp-time-label { background: rgba(22,33,62,0.85) !important; border: 1px solid #1a5276 !important; color: #00d2ff !important; font-size: 10px !important; font-weight: 600 !important; padding: 1px 4px !important; border-radius: 3px !important; white-space: nowrap !important; }
+.cp-time-label::before { display: none !important; }
 </style>
 </head>
 <body>
@@ -158,9 +166,17 @@ function fmtTime(ts) {
   if (!ts) return '—';
   return new Date(ts * 1000).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
 }
+function fmtUTC(ts) {
+  if (!ts) return '—';
+  return new Date(ts * 1000).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit', second:'2-digit', timeZone:'UTC'});
+}
 function fmtDate(ts) {
   if (!ts) return '';
   return new Date(ts * 1000).toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'});
+}
+function fmtDateUTC(ts) {
+  if (!ts) return '';
+  return new Date(ts * 1000).toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit', timeZone:'UTC'});
 }
 function fmtDateTime(ts) {
   if (!ts) return '—';
@@ -306,30 +322,39 @@ function drawTrack(icao, data, fitBounds) {
   const line = L.polyline(latlngs, { color, weight: 2.5, opacity: 0.85 });
   group.addLayer(line);
 
-  // Start marker (green circle)
+  // Callsign for labels
   const first = data.trace[0];
+  const last = data.trace[data.trace.length - 1];
+  const callsign = (last[8] && last[8].flight) || (first[8] && first[8].flight) || icao.toUpperCase();
+
+  // Start marker (green circle)
   const startMarker = L.circleMarker([first[1], first[2]], {
     radius: 6, color: '#00ff00', fillColor: '#00ff00', fillOpacity: 1, weight: 2
   });
-  const startFlight = (first[8] && first[8].flight) || icao.toUpperCase();
   startMarker.bindTooltip(
-    `<div class="checkpoint-tooltip"><span class="cp-time">START ${fmtTime(baseTs + first[0])}</span><br>${startFlight}</div>`,
+    `<div class="checkpoint-tooltip"><span class="cp-time">START ${fmtUTC(baseTs + first[0])} UTC</span><br>${callsign}</div>`,
     { permanent: false, direction: 'top', className: 'checkpoint-tooltip' }
   );
   group.addLayer(startMarker);
 
   // End marker (red circle)
-  const last = data.trace[data.trace.length - 1];
-  const endFlight = (last[8] && last[8].flight) || icao.toUpperCase();
   const endAlt = last[3] === 'ground' ? 'GND' : last[3] + ' ft';
   const endMarker = L.circleMarker([last[1], last[2]], {
     radius: 6, color: '#ff3333', fillColor: '#ff3333', fillOpacity: 1, weight: 2
   });
   endMarker.bindTooltip(
-    `<div class="checkpoint-tooltip"><span class="cp-time">END ${fmtTime(baseTs + last[0])}</span><br>${endFlight} | ${endAlt}</div>`,
+    `<div class="checkpoint-tooltip"><span class="cp-time">END ${fmtUTC(baseTs + last[0])} UTC</span><br>${callsign} | ${endAlt}</div>`,
     { permanent: false, direction: 'top', className: 'checkpoint-tooltip' }
   );
   group.addLayer(endMarker);
+
+  // Permanent callsign label at middle of track
+  const midIdx = Math.floor(data.trace.length / 2);
+  const midPt = data.trace[midIdx];
+  const nameLabel = L.marker([midPt[1], midPt[2]], {
+    icon: L.divIcon({ className: 'track-label', html: callsign, iconSize: [0, 0], iconAnchor: [-4, 12] })
+  });
+  group.addLayer(nameLabel);
 
   // Checkpoints
   if (checkpointsEnabled()) {
@@ -341,24 +366,31 @@ function drawTrack(icao, data, fitBounds) {
       const ts = baseTs + p[0];
       if (ts >= nextCpTs) {
         nextCpTs = ts + interval;
-        const flight = (p[8] && p[8].flight) || icao.toUpperCase();
         const alt = p[3] === 'ground' ? 'GND' : (p[3] != null ? p[3] + ' ft' : '—');
         const spd = p[4] != null ? p[4] + ' kt' : '—';
         const vr = p[7] ? (p[7] > 0 ? '+' : '') + p[7] + ' ft/m' : '';
         const hdg = p[5] != null ? p[5] + '°' : '';
+        const utcTime = fmtUTC(ts);
 
         const cp = L.circleMarker([p[1], p[2]], {
           radius: 4, color, fillColor: '#fff', fillOpacity: 0.9, weight: 2
         });
-        cp.bindTooltip(
+
+        // Permanent small UTC time label
+        cp.bindTooltip(utcTime, {
+          permanent: true, direction: 'right', className: 'cp-time-label', offset: [6, 0]
+        });
+
+        // Detailed popup on hover (via popup instead)
+        cp.bindPopup(
           `<div class="checkpoint-tooltip">` +
-          `<span class="cp-time">${fmtTime(ts)}</span> ${fmtDate(ts)}<br>` +
-          `<b>${flight}</b><br>` +
+          `<span class="cp-time">${utcTime} UTC</span> ${fmtDateUTC(ts)}<br>` +
+          `<b>${callsign}</b><br>` +
           `<span class="cp-alt">${alt}</span> | <span class="cp-spd">${spd}</span>` +
           (vr ? ` | ${vr}` : '') +
           (hdg ? ` | ${hdg}` : '') +
           `</div>`,
-          { permanent: false, direction: 'top', className: 'checkpoint-tooltip' }
+          { className: 'checkpoint-tooltip' }
         );
         group.addLayer(cp);
       }
