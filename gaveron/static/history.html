@@ -10,67 +10,87 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #1a1a2e; color: #e0e0e0; height: 100vh; display: flex; flex-direction: column; }
 
-.header { background: #16213e; padding: 10px 20px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; border-bottom: 2px solid #0f3460; }
-.header h1 { font-size: 18px; color: #00d2ff; white-space: nowrap; }
+.header { background: #16213e; padding: 8px 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; border-bottom: 2px solid #0f3460; }
+.header h1 { font-size: 17px; color: #00d2ff; white-space: nowrap; }
 .header a { color: #00d2ff; text-decoration: none; font-size: 13px; }
 .header a:hover { text-decoration: underline; }
 
-.controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .controls label { font-size: 13px; color: #aaa; }
-.controls input[type="date"] { background: #0f3460; color: #fff; border: 1px solid #1a5276; padding: 6px 10px; border-radius: 4px; font-size: 14px; cursor: pointer; }
-.controls button { background: #0f3460; color: #00d2ff; border: 1px solid #1a5276; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+.controls input[type="date"] { background: #0f3460; color: #fff; border: 1px solid #1a5276; padding: 5px 8px; border-radius: 4px; font-size: 13px; cursor: pointer; }
+.controls button { background: #0f3460; color: #00d2ff; border: 1px solid #1a5276; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
 .controls button:hover { background: #1a5276; }
 .controls button.active { background: #00d2ff; color: #1a1a2e; }
+.controls .sep { color: #555; font-size: 13px; }
 
-.date-chips { display: flex; gap: 6px; flex-wrap: wrap; }
-.date-chip { background: #0f3460; color: #ccc; border: 1px solid #1a5276; padding: 4px 10px; border-radius: 12px; font-size: 12px; cursor: pointer; }
+.date-chips { display: flex; gap: 5px; flex-wrap: wrap; }
+.date-chip { background: #0f3460; color: #ccc; border: 1px solid #1a5276; padding: 3px 8px; border-radius: 12px; font-size: 11px; cursor: pointer; }
 .date-chip:hover, .date-chip.active { background: #00d2ff; color: #1a1a2e; }
 
 .main { display: flex; flex: 1; overflow: hidden; }
 
 .sidebar { width: 340px; background: #16213e; border-right: 1px solid #0f3460; display: flex; flex-direction: column; overflow: hidden; }
-.sidebar-header { padding: 10px 14px; border-bottom: 1px solid #0f3460; display: flex; justify-content: space-between; align-items: center; }
-.sidebar-header span { font-size: 14px; font-weight: 600; }
+.sidebar-header { padding: 8px 14px; border-bottom: 1px solid #0f3460; display: flex; justify-content: space-between; align-items: center; }
+.sidebar-header span { font-size: 13px; font-weight: 600; }
 .count { color: #00d2ff; font-size: 13px; }
 
 .aircraft-list { flex: 1; overflow-y: auto; }
-.aircraft-item { padding: 8px 14px; border-bottom: 1px solid #0f3460; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.15s; }
+.aircraft-item { padding: 7px 14px; border-bottom: 1px solid #0f3460; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.15s; }
 .aircraft-item:hover { background: #1a3a5c; }
 .aircraft-item.selected { background: #0f3460; border-left: 3px solid #00d2ff; }
-.aircraft-item .callsign { font-weight: 600; color: #fff; font-size: 14px; }
-.aircraft-item .icao { color: #888; font-size: 11px; font-family: monospace; }
-.aircraft-item .meta { text-align: right; font-size: 11px; color: #aaa; }
+.aircraft-item .callsign { font-weight: 600; color: #fff; font-size: 13px; }
+.aircraft-item .icao { color: #888; font-size: 10px; font-family: monospace; }
+.aircraft-item .meta { text-align: right; font-size: 10px; color: #aaa; }
 .aircraft-item .pts { color: #00d2ff; }
 
-.search-box { padding: 8px 14px; border-bottom: 1px solid #0f3460; }
-.search-box input { width: 100%; background: #0f3460; color: #fff; border: 1px solid #1a5276; padding: 6px 10px; border-radius: 4px; font-size: 13px; }
+.search-box { padding: 6px 14px; border-bottom: 1px solid #0f3460; }
+.search-box input { width: 100%; background: #0f3460; color: #fff; border: 1px solid #1a5276; padding: 5px 10px; border-radius: 4px; font-size: 12px; }
 
 #map { flex: 1; }
-.info-box { position: absolute; top: 10px; right: 10px; z-index: 1000; background: rgba(22,33,62,0.92); padding: 12px 16px; border-radius: 6px; border: 1px solid #0f3460; font-size: 12px; max-width: 260px; pointer-events: auto; }
-.info-box h3 { color: #00d2ff; margin-bottom: 6px; font-size: 14px; }
+
+.info-box { position: absolute; top: 10px; right: 10px; z-index: 1000; background: rgba(22,33,62,0.93); padding: 10px 14px; border-radius: 6px; border: 1px solid #0f3460; font-size: 12px; max-width: 280px; pointer-events: auto; }
+.info-box h3 { color: #00d2ff; margin-bottom: 4px; font-size: 14px; }
 .info-box .row { display: flex; justify-content: space-between; padding: 2px 0; }
 .info-box .lbl { color: #888; }
 .info-box .val { color: #fff; font-family: monospace; }
+.info-box .tar1090-link { display: inline-block; margin-top: 6px; padding: 3px 8px; background: #0f3460; color: #00d2ff; border-radius: 4px; text-decoration: none; font-size: 11px; }
+.info-box .tar1090-link:hover { background: #1a5276; }
 
-.loading { display: flex; align-items: center; justify-content: center; height: 100%; color: #888; font-size: 15px; }
-.status { padding: 6px 14px; font-size: 12px; color: #888; border-top: 1px solid #0f3460; text-align: center; }
+.loading { display: flex; align-items: center; justify-content: center; height: 100%; color: #888; font-size: 14px; }
+.status { padding: 5px 14px; font-size: 11px; color: #888; border-top: 1px solid #0f3460; text-align: center; }
 
-.tar1090-link { display: inline-block; margin-top: 8px; padding: 4px 10px; background: #0f3460; color: #00d2ff; border-radius: 4px; text-decoration: none; font-size: 12px; }
-.tar1090-link:hover { background: #1a5276; }
+/* Checkpoint tooltip on map */
+.checkpoint-tooltip { background: rgba(22,33,62,0.9) !important; border: 1px solid #0f3460 !important; color: #e0e0e0 !important; font-size: 11px !important; padding: 4px 8px !important; border-radius: 4px !important; box-shadow: 0 2px 6px rgba(0,0,0,0.4) !important; white-space: nowrap !important; }
+.checkpoint-tooltip .cp-time { color: #00d2ff; font-weight: 700; font-size: 12px; }
+.checkpoint-tooltip .cp-alt { color: #ffd93d; }
+.checkpoint-tooltip .cp-spd { color: #6bcb77; }
+.checkpoint-tooltip::before { border-right-color: rgba(22,33,62,0.9) !important; }
+
+/* Checkpoint controls */
+.cp-controls { padding: 6px 14px; border-bottom: 1px solid #0f3460; display: flex; align-items: center; gap: 8px; }
+.cp-controls label { font-size: 11px; color: #aaa; }
+.cp-controls select { background: #0f3460; color: #fff; border: 1px solid #1a5276; padding: 3px 6px; border-radius: 4px; font-size: 11px; }
+.cp-controls .cb { display: flex; align-items: center; gap: 4px; }
+.cp-controls input[type="checkbox"] { accent-color: #00d2ff; }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>Gaveron — История треков</h1>
-  <a href="/">← Живая карта (tar1090)</a>
+  <h1>Gaveron — Архив треков</h1>
+  <a href="/">← Живая карта</a>
   <div class="controls">
-    <label>Дата:</label>
-    <input type="date" id="datePicker">
-    <button id="btnPrev" title="Предыдущий день">◀</button>
-    <button id="btnNext" title="Следующий день">▶</button>
+    <label>С:</label>
+    <input type="date" id="dateFrom">
+    <label>По:</label>
+    <input type="date" id="dateTo">
+    <button id="btnLoad">Загрузить</button>
+    <span class="sep">|</span>
     <button id="btnToday">Сегодня</button>
-    <button id="btnShowAll" title="Показать все треки за день">Все треки</button>
+    <button id="btnWeek">Неделя</button>
+    <button id="btnMonth">Месяц</button>
+    <span class="sep">|</span>
+    <button id="btnShowAll">Все треки</button>
   </div>
   <div class="date-chips" id="dateChips"></div>
 </div>
@@ -80,14 +100,28 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <div class="search-box">
       <input type="text" id="searchInput" placeholder="Поиск по callsign / ICAO...">
     </div>
+    <div class="cp-controls">
+      <div class="cb">
+        <input type="checkbox" id="cbCheckpoints" checked>
+        <label for="cbCheckpoints">Контрольные точки</label>
+      </div>
+      <select id="cpInterval">
+        <option value="60">1 мин</option>
+        <option value="300" selected>5 мин</option>
+        <option value="600">10 мин</option>
+        <option value="1800">30 мин</option>
+        <option value="3600">1 час</option>
+      </select>
+    </div>
     <div class="sidebar-header">
       <span>Самолёты</span>
+      <button id="btnShowAllSidebar" style="background:#0f3460;color:#00d2ff;border:1px solid #1a5276;padding:3px 10px;border-radius:4px;cursor:pointer;font-size:11px;">Показать все</button>
       <span class="count" id="acCount">—</span>
     </div>
     <div class="aircraft-list" id="aircraftList">
-      <div class="loading" id="listLoading">Выберите дату</div>
+      <div class="loading">Выберите период</div>
     </div>
-    <div class="status" id="statusBar">Retention: 100 дней</div>
+    <div class="status" id="statusBar">Хранение: 100 дней</div>
   </div>
   <div id="map"></div>
 </div>
@@ -99,76 +133,89 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 let allAircraft = [];
-let trackLayers = {};  // icao -> L.polyline
-let markerLayers = {}; // icao -> L.marker
+let trackLayers = {};    // icao -> L.layerGroup (polyline + checkpoints)
 let selectedIcao = null;
 let infoControl = null;
 
-// Colors for tracks
 const COLORS = [
-  '#00d2ff', '#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff',
-  '#ff8c00', '#ee82ee', '#00fa9a', '#ff1493', '#7b68ee',
-  '#20b2aa', '#dc143c', '#ffa07a', '#32cd32', '#ba55d3',
+  '#00d2ff','#ff6b6b','#ffd93d','#6bcb77','#4d96ff',
+  '#ff8c00','#ee82ee','#00fa9a','#ff1493','#7b68ee',
+  '#20b2aa','#dc143c','#ffa07a','#32cd32','#ba55d3',
 ];
-function colorForIcao(icao) {
-  let hash = 0;
-  for (let i = 0; i < icao.length; i++) hash = icao.charCodeAt(i) + ((hash << 5) - hash);
-  return COLORS[Math.abs(hash) % COLORS.length];
+function colorFor(icao) {
+  let h = 0;
+  for (let i = 0; i < icao.length; i++) h = icao.charCodeAt(i) + ((h << 5) - h);
+  return COLORS[Math.abs(h) % COLORS.length];
 }
 
-// Date helpers
-function today() { return new Date().toISOString().slice(0, 10); }
-function shiftDate(dateStr, days) {
-  const d = new Date(dateStr + 'T12:00:00Z');
+function todayStr() { return new Date().toISOString().slice(0,10); }
+function shiftDate(s, days) {
+  const d = new Date(s + 'T12:00:00Z');
   d.setUTCDate(d.getUTCDate() + days);
-  return d.toISOString().slice(0, 10);
+  return d.toISOString().slice(0,10);
 }
-function formatTime(ts) {
+function fmtTime(ts) {
   if (!ts) return '—';
-  return new Date(ts * 1000).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  return new Date(ts * 1000).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+}
+function fmtDate(ts) {
+  if (!ts) return '';
+  return new Date(ts * 1000).toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'});
+}
+function fmtDateTime(ts) {
+  if (!ts) return '—';
+  const d = new Date(ts * 1000);
+  return d.toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'}) + ' ' +
+         d.toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'});
 }
 
-// Init date picker
-const datePicker = document.getElementById('datePicker');
-datePicker.value = today();
-datePicker.max = today();
+// Init date pickers
+const dateFrom = document.getElementById('dateFrom');
+const dateTo = document.getElementById('dateTo');
+dateFrom.max = dateTo.max = todayStr();
+dateFrom.value = dateTo.value = todayStr();
 
-// Load available dates
+// ---- Data loading ----
+
 async function loadDates() {
   try {
     const resp = await fetch('/api/dates');
     const data = await resp.json();
     const chips = document.getElementById('dateChips');
     chips.innerHTML = '';
-    // Show last 10 dates
-    data.dates.slice(0, 10).forEach(d => {
+    data.dates.slice(0, 14).forEach(d => {
       const chip = document.createElement('span');
       chip.className = 'date-chip';
       chip.textContent = d;
-      chip.onclick = () => { datePicker.value = d; loadDate(d); };
+      chip.onclick = () => { dateFrom.value = dateTo.value = d; loadRange(); };
       chips.appendChild(chip);
     });
-    if (data.dates.length > 0 && !datePicker.value) {
-      datePicker.value = data.dates[0];
-    }
-  } catch(e) { console.error('Failed to load dates:', e); }
+  } catch(e) { console.error(e); }
 }
 
-// Load aircraft for a date
-async function loadDate(dateStr) {
+async function loadRange() {
+  const from = dateFrom.value, to = dateTo.value;
+  if (!from || !to) return;
   const listEl = document.getElementById('aircraftList');
   listEl.innerHTML = '<div class="loading">Загрузка...</div>';
   document.getElementById('acCount').textContent = '—';
-  clearAllTracks();
+  clearAll();
+
   // Highlight active chip
-  document.querySelectorAll('.date-chip').forEach(c => c.classList.toggle('active', c.textContent === dateStr));
+  const isSingle = (from === to);
+  document.querySelectorAll('.date-chip').forEach(c =>
+    c.classList.toggle('active', isSingle && c.textContent === from));
 
   try {
-    const resp = await fetch(`/api/aircraft-by-date?date=${dateStr}`);
+    const url = (from === to)
+      ? `/api/aircraft-by-date?date=${from}`
+      : `/api/aircraft-by-range?from=${from}&to=${to}`;
+    const resp = await fetch(url);
     const data = await resp.json();
     allAircraft = data.aircraft;
     document.getElementById('acCount').textContent = data.count;
-    document.getElementById('statusBar').textContent = `${dateStr} — ${data.count} самолётов`;
+    const label = (from === to) ? from : `${from} — ${to}`;
+    document.getElementById('statusBar').textContent = `${label} — ${data.count} самолётов`;
     renderList(allAircraft);
   } catch(e) {
     listEl.innerHTML = '<div class="loading">Ошибка загрузки</div>';
@@ -179,105 +226,163 @@ async function loadDate(dateStr) {
 function renderList(aircraft) {
   const listEl = document.getElementById('aircraftList');
   if (aircraft.length === 0) {
-    listEl.innerHTML = '<div class="loading">Нет данных за эту дату</div>';
+    listEl.innerHTML = '<div class="loading">Нет данных за период</div>';
     return;
   }
   listEl.innerHTML = '';
   aircraft.forEach(ac => {
     const item = document.createElement('div');
     item.className = 'aircraft-item' + (ac.icao === selectedIcao ? ' selected' : '');
-    const callsign = (ac.flight || '').trim() || ac.icao.toUpperCase();
+    const cs = (ac.flight || '').trim() || ac.icao.toUpperCase();
+    const multiDay = dateFrom.value !== dateTo.value;
+    const timeStr = multiDay
+      ? `${fmtDateTime(ac.first_seen)} — ${fmtDateTime(ac.last_seen)}`
+      : `${fmtTime(ac.first_seen)} — ${fmtTime(ac.last_seen)}`;
     item.innerHTML = `
       <div>
-        <div class="callsign">${callsign}</div>
-        <div class="icao">${ac.icao.toUpperCase()} ${ac.category || ''} ${ac.squawk ? '▪ ' + ac.squawk : ''}</div>
+        <div class="callsign">${cs}</div>
+        <div class="icao">${ac.icao.toUpperCase()} ${ac.category||''} ${ac.squawk ? '&#9642; '+ac.squawk : ''}</div>
       </div>
       <div class="meta">
         <div class="pts">${ac.positions} pts</div>
-        <div>${formatTime(ac.first_seen)} — ${formatTime(ac.last_seen)}</div>
-      </div>
-    `;
+        <div>${timeStr}</div>
+      </div>`;
     item.onclick = () => selectAircraft(ac.icao);
     listEl.appendChild(item);
   });
 }
 
-// Search filter
-document.getElementById('searchInput').addEventListener('input', (e) => {
+// ---- Search ----
+document.getElementById('searchInput').addEventListener('input', e => {
   const q = e.target.value.toLowerCase();
-  const filtered = allAircraft.filter(ac =>
-    ac.icao.toLowerCase().includes(q) ||
-    (ac.flight || '').toLowerCase().includes(q)
-  );
-  renderList(filtered);
+  renderList(allAircraft.filter(ac =>
+    ac.icao.toLowerCase().includes(q) || (ac.flight||'').toLowerCase().includes(q)
+  ));
 });
 
-// Select aircraft and load its track
+// ---- Track drawing ----
+
 async function selectAircraft(icao) {
+  clearAll();
   selectedIcao = icao;
-  // Highlight in list
   document.querySelectorAll('.aircraft-item').forEach(el => el.classList.remove('selected'));
-  const items = document.querySelectorAll('.aircraft-item');
-  items.forEach(el => {
-    if (el.querySelector('.icao').textContent.toLowerCase().startsWith(icao)) {
-      el.classList.add('selected');
-    }
+  document.querySelectorAll('.aircraft-item').forEach(el => {
+    if (el.querySelector('.icao').textContent.toLowerCase().startsWith(icao)) el.classList.add('selected');
   });
   await loadTrack(icao);
 }
 
 async function loadTrack(icao) {
-  const dateStr = datePicker.value;
-  const [year, month, day] = dateStr.split('-');
+  const from = dateFrom.value, to = dateTo.value;
   try {
-    const resp = await fetch(`/globe_history/${year}/${month}/${day}/traces/${icao.slice(-2)}/trace_full_${icao}.json`);
-    if (!resp.ok) { console.warn('No trace for', icao); return; }
+    const url = `/api/track-by-range/${icao}?from=${from}&to=${to}`;
+    const resp = await fetch(url);
+    if (!resp.ok) return;
     const data = await resp.json();
-    drawTrack(icao, data);
-  } catch(e) { console.error('Track load error:', e); }
+    drawTrack(icao, data, true);
+  } catch(e) { console.error(e); }
 }
 
-function drawTrack(icao, data) {
-  // Remove existing track
-  if (trackLayers[icao]) { map.removeLayer(trackLayers[icao]); }
-  if (markerLayers[icao]) { map.removeLayer(markerLayers[icao]); }
+function getCheckpointInterval() {
+  return parseInt(document.getElementById('cpInterval').value);
+}
+function checkpointsEnabled() {
+  return document.getElementById('cbCheckpoints').checked;
+}
 
+function drawTrack(icao, data, fitBounds) {
+  // Remove old
+  if (trackLayers[icao]) { map.removeLayer(trackLayers[icao]); delete trackLayers[icao]; }
   if (!data.trace || data.trace.length === 0) return;
 
-  const color = colorForIcao(icao);
+  const color = colorFor(icao);
+  const baseTs = data.timestamp;
+  const group = L.layerGroup();
+
+  // Build latlngs
   const latlngs = data.trace.map(p => [p[1], p[2]]);
 
-  // Draw polyline
-  const line = L.polyline(latlngs, { color, weight: 2.5, opacity: 0.85 }).addTo(map);
-  trackLayers[icao] = line;
+  // Polyline
+  const line = L.polyline(latlngs, { color, weight: 2.5, opacity: 0.85 });
+  group.addLayer(line);
 
-  // Marker at last position
+  // Start marker (green circle)
+  const first = data.trace[0];
+  const startMarker = L.circleMarker([first[1], first[2]], {
+    radius: 6, color: '#00ff00', fillColor: '#00ff00', fillOpacity: 1, weight: 2
+  });
+  const startFlight = (first[8] && first[8].flight) || icao.toUpperCase();
+  startMarker.bindTooltip(
+    `<div class="checkpoint-tooltip"><span class="cp-time">START ${fmtTime(baseTs + first[0])}</span><br>${startFlight}</div>`,
+    { permanent: false, direction: 'top', className: 'checkpoint-tooltip' }
+  );
+  group.addLayer(startMarker);
+
+  // End marker (red circle)
   const last = data.trace[data.trace.length - 1];
-  const flight = (last[8] && last[8].flight) || icao.toUpperCase();
-  const alt = last[3] === 'ground' ? 'GND' : last[3] + ' ft';
-  const marker = L.circleMarker([last[1], last[2]], {
-    radius: 5, color, fillColor: color, fillOpacity: 1, weight: 1
-  }).addTo(map);
-  marker.bindTooltip(`${flight}<br>${alt}`, { permanent: false, direction: 'top' });
-  markerLayers[icao] = marker;
+  const endFlight = (last[8] && last[8].flight) || icao.toUpperCase();
+  const endAlt = last[3] === 'ground' ? 'GND' : last[3] + ' ft';
+  const endMarker = L.circleMarker([last[1], last[2]], {
+    radius: 6, color: '#ff3333', fillColor: '#ff3333', fillOpacity: 1, weight: 2
+  });
+  endMarker.bindTooltip(
+    `<div class="checkpoint-tooltip"><span class="cp-time">END ${fmtTime(baseTs + last[0])}</span><br>${endFlight} | ${endAlt}</div>`,
+    { permanent: false, direction: 'top', className: 'checkpoint-tooltip' }
+  );
+  group.addLayer(endMarker);
 
-  // Fit bounds
-  map.fitBounds(line.getBounds().pad(0.1));
+  // Checkpoints
+  if (checkpointsEnabled()) {
+    const interval = getCheckpointInterval();
+    let nextCpTs = baseTs + first[0] + interval;
 
-  // Show info
-  showInfo(icao, data);
+    for (let i = 1; i < data.trace.length - 1; i++) {
+      const p = data.trace[i];
+      const ts = baseTs + p[0];
+      if (ts >= nextCpTs) {
+        nextCpTs = ts + interval;
+        const flight = (p[8] && p[8].flight) || icao.toUpperCase();
+        const alt = p[3] === 'ground' ? 'GND' : (p[3] != null ? p[3] + ' ft' : '—');
+        const spd = p[4] != null ? p[4] + ' kt' : '—';
+        const vr = p[7] ? (p[7] > 0 ? '+' : '') + p[7] + ' ft/m' : '';
+        const hdg = p[5] != null ? p[5] + '°' : '';
+
+        const cp = L.circleMarker([p[1], p[2]], {
+          radius: 4, color, fillColor: '#fff', fillOpacity: 0.9, weight: 2
+        });
+        cp.bindTooltip(
+          `<div class="checkpoint-tooltip">` +
+          `<span class="cp-time">${fmtTime(ts)}</span> ${fmtDate(ts)}<br>` +
+          `<b>${flight}</b><br>` +
+          `<span class="cp-alt">${alt}</span> | <span class="cp-spd">${spd}</span>` +
+          (vr ? ` | ${vr}` : '') +
+          (hdg ? ` | ${hdg}` : '') +
+          `</div>`,
+          { permanent: false, direction: 'top', className: 'checkpoint-tooltip' }
+        );
+        group.addLayer(cp);
+      }
+    }
+  }
+
+  group.addTo(map);
+  trackLayers[icao] = group;
+
+  if (fitBounds) {
+    map.fitBounds(line.getBounds().pad(0.1));
+    showInfo(icao, data);
+  }
 }
 
 function showInfo(icao, data) {
   if (infoControl) map.removeControl(infoControl);
   const trace = data.trace;
-  const first = trace[0];
-  const last = trace[trace.length - 1];
-  const flight = (last[8] && last[8].flight) || '';
+  if (!trace || trace.length === 0) return;
+  const first = trace[0], last = trace[trace.length - 1];
   const baseTs = data.timestamp;
-  const startTime = formatTime(baseTs + first[0]);
-  const endTime = formatTime(baseTs + last[0]);
-  const dateStr = datePicker.value;
+  const flight = (last[8] && last[8].flight) || '';
+  const from = dateFrom.value, to = dateTo.value;
+  const label = (from === to) ? from : `${from} — ${to}`;
 
   infoControl = L.control({ position: 'topright' });
   infoControl.onAdd = function() {
@@ -286,72 +391,93 @@ function showInfo(icao, data) {
       <h3>${flight || icao.toUpperCase()}</h3>
       <div class="row"><span class="lbl">ICAO:</span><span class="val">${icao.toUpperCase()}</span></div>
       <div class="row"><span class="lbl">Точек:</span><span class="val">${trace.length}</span></div>
-      <div class="row"><span class="lbl">Время:</span><span class="val">${startTime} — ${endTime}</span></div>
-      <div class="row"><span class="lbl">Высота:</span><span class="val">${last[3] === 'ground' ? 'GND' : last[3] + ' ft'}</span></div>
-      <div class="row"><span class="lbl">Скорость:</span><span class="val">${last[4] ? last[4] + ' kt' : '—'}</span></div>
-      <a class="tar1090-link" href="/?showTrace=${dateStr}&icao=${icao}" target="_blank">Открыть в tar1090 →</a>
+      <div class="row"><span class="lbl">Начало:</span><span class="val">${fmtDateTime(baseTs + first[0])}</span></div>
+      <div class="row"><span class="lbl">Конец:</span><span class="val">${fmtDateTime(baseTs + last[0])}</span></div>
+      <div class="row"><span class="lbl">Высота:</span><span class="val">${last[3]==='ground' ? 'GND' : last[3]+' ft'}</span></div>
+      <div class="row"><span class="lbl">Скорость:</span><span class="val">${last[4] ? last[4]+' kt' : '—'}</span></div>
+      <a class="tar1090-link" href="/?showTrace=${from}&icao=${icao}" target="_blank">Открыть в tar1090 &rarr;</a>
     `;
     return div;
   };
   infoControl.addTo(map);
 }
 
-function clearAllTracks() {
+function clearAll() {
   Object.values(trackLayers).forEach(l => map.removeLayer(l));
-  Object.values(markerLayers).forEach(l => map.removeLayer(l));
   trackLayers = {};
-  markerLayers = {};
   if (infoControl) { map.removeControl(infoControl); infoControl = null; }
   selectedIcao = null;
 }
 
-// Show all tracks for the day
+// ---- Show all tracks ----
+
 async function showAllTracks() {
-  clearAllTracks();
-  const dateStr = datePicker.value;
-  document.getElementById('statusBar').textContent = `Загрузка всех треков за ${dateStr}...`;
+  clearAll();
+  const from = dateFrom.value, to = dateTo.value;
+  const label = (from === to) ? from : `${from} — ${to}`;
+  document.getElementById('statusBar').textContent = `Загрузка всех треков за ${label}...`;
   let loaded = 0;
-  const promises = allAircraft.slice(0, 50).map(async (ac) => {
-    const [year, month, day] = dateStr.split('-');
-    try {
-      const resp = await fetch(`/globe_history/${year}/${month}/${day}/traces/${ac.icao.slice(-2)}/trace_full_${ac.icao}.json`);
-      if (resp.ok) {
-        const data = await resp.json();
-        drawTrack(ac.icao, data);
-        loaded++;
-      }
-    } catch(e) {}
+  // Load up to 60 aircraft in parallel (batches of 10)
+  const batch = 10;
+  for (let i = 0; i < allAircraft.length && i < 60; i += batch) {
+    const chunk = allAircraft.slice(i, i + batch);
+    await Promise.all(chunk.map(async ac => {
+      try {
+        const resp = await fetch(`/api/track-by-range/${ac.icao}?from=${from}&to=${to}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          drawTrack(ac.icao, data, false);
+          loaded++;
+        }
+      } catch(e) {}
+    }));
+  }
+  document.getElementById('statusBar').textContent = `${label} — показано ${loaded} треков`;
+  // Fit all
+  const bounds = [];
+  Object.values(trackLayers).forEach(g => {
+    g.eachLayer(l => { if (l.getBounds) bounds.push(l.getBounds()); });
   });
-  await Promise.all(promises);
-  document.getElementById('statusBar').textContent = `${dateStr} — показано ${loaded} треков`;
-  // Fit all tracks
-  const allBounds = Object.values(trackLayers).map(l => l.getBounds());
-  if (allBounds.length > 0) {
-    let bounds = allBounds[0];
-    allBounds.slice(1).forEach(b => bounds.extend(b));
-    map.fitBounds(bounds.pad(0.05));
+  if (bounds.length > 0) {
+    let b = bounds[0];
+    bounds.slice(1).forEach(x => b.extend(x));
+    map.fitBounds(b.pad(0.05));
   }
 }
 
-// Event handlers
-datePicker.addEventListener('change', () => loadDate(datePicker.value));
-document.getElementById('btnPrev').addEventListener('click', () => {
-  datePicker.value = shiftDate(datePicker.value, -1);
-  loadDate(datePicker.value);
-});
-document.getElementById('btnNext').addEventListener('click', () => {
-  const next = shiftDate(datePicker.value, 1);
-  if (next <= today()) { datePicker.value = next; loadDate(datePicker.value); }
-});
+// ---- Event handlers ----
+
+document.getElementById('btnLoad').addEventListener('click', loadRange);
+dateFrom.addEventListener('change', () => { if (dateTo.value < dateFrom.value) dateTo.value = dateFrom.value; });
+dateTo.addEventListener('change', () => { if (dateFrom.value > dateTo.value) dateFrom.value = dateTo.value; });
+
 document.getElementById('btnToday').addEventListener('click', () => {
-  datePicker.value = today();
-  loadDate(datePicker.value);
+  dateFrom.value = dateTo.value = todayStr(); loadRange();
+});
+document.getElementById('btnWeek').addEventListener('click', () => {
+  dateTo.value = todayStr(); dateFrom.value = shiftDate(todayStr(), -6); loadRange();
+});
+document.getElementById('btnMonth').addEventListener('click', () => {
+  dateTo.value = todayStr(); dateFrom.value = shiftDate(todayStr(), -29); loadRange();
 });
 document.getElementById('btnShowAll').addEventListener('click', showAllTracks);
+document.getElementById('btnShowAllSidebar').addEventListener('click', showAllTracks);
+
+// Re-draw checkpoints when settings change
+document.getElementById('cbCheckpoints').addEventListener('change', () => {
+  const selected = selectedIcao;
+  if (Object.keys(trackLayers).length > 0) { showAllTracks(); }
+  else if (selected) { loadTrack(selected); }
+});
+document.getElementById('cpInterval').addEventListener('change', () => {
+  const selected = selectedIcao;
+  if (Object.keys(trackLayers).length > 1) { showAllTracks(); }
+  else if (selected) { loadTrack(selected); }
+});
 
 // Init
 loadDates();
-loadDate(today());
+loadRange();
 </script>
 </body>
 </html>

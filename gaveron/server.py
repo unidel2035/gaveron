@@ -61,6 +61,8 @@ class GaveronServer:
         # Track history API
         self.app.router.add_get("/api/dates", self.handle_available_dates)
         self.app.router.add_get("/api/aircraft-by-date", self.handle_aircraft_by_date)
+        self.app.router.add_get("/api/aircraft-by-range", self.handle_aircraft_by_range)
+        self.app.router.add_get("/api/track-by-range/{icao}", self.handle_track_by_range)
         self.app.router.add_get("/api/tracks/{icao}", self.handle_track)
         self.app.router.add_get("/api/tracks", self.handle_all_tracks)
         self.app.router.add_get("/api/heatmap", self.handle_heatmap)
@@ -315,6 +317,54 @@ class GaveronServer:
             "date": date_str,
             "count": len(aircraft),
             "aircraft": aircraft,
+        })
+
+    async def handle_aircraft_by_range(self, request: web.Request) -> web.Response:
+        """Get aircraft seen in a date range."""
+        date_from = request.query.get("from")
+        date_to = request.query.get("to")
+        if not date_from or not date_to:
+            raise web.HTTPBadRequest(text="Missing 'from' and 'to' parameters (YYYY-MM-DD)")
+        aircraft = self.trackdb.get_aircraft_by_range(date_from, date_to)
+        return web.json_response({
+            "from": date_from,
+            "to": date_to,
+            "count": len(aircraft),
+            "aircraft": aircraft,
+        })
+
+    async def handle_track_by_range(self, request: web.Request) -> web.Response:
+        """Get track for an aircraft across a date range."""
+        icao = request.match_info["icao"].lower()
+        date_from = request.query.get("from")
+        date_to = request.query.get("to")
+        if not date_from or not date_to:
+            raise web.HTTPBadRequest(text="Missing 'from' and 'to' parameters (YYYY-MM-DD)")
+        positions = self.trackdb.get_track_by_range(icao, date_from, date_to)
+        if not positions:
+            return web.json_response({"icao": icao, "count": 0, "trace": [], "timestamp": 0})
+        base_ts = positions[0]["ts"]
+        trace = []
+        for p in positions:
+            extra = {}
+            if p.get("flight"):
+                extra["flight"] = p["flight"].strip()
+            trace.append([
+                round(p["ts"] - base_ts, 1),
+                round(p["lat"], 6),
+                round(p["lon"], 6),
+                p.get("alt_baro") or "ground",
+                round(p["gs"], 1) if p.get("gs") else None,
+                round(p["track"], 1) if p.get("track") else None,
+                0,
+                p.get("vert_rate") or 0,
+                extra if extra else None,
+            ])
+        return web.json_response({
+            "icao": icao,
+            "count": len(trace),
+            "timestamp": round(base_ts, 1),
+            "trace": trace,
         })
 
     async def handle_track(self, request: web.Request) -> web.Response:

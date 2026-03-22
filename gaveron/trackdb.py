@@ -253,6 +253,42 @@ class TrackDB:
             ).fetchall()
         return [dict(r) for r in rows]
 
+    def get_track_by_range(self, icao: str, date_from: str, date_to: str) -> list[dict]:
+        """Get track for an aircraft across a date range (YYYY-MM-DD, UTC)."""
+        ts_start = datetime.strptime(date_from, "%Y-%m-%d").replace(tzinfo=timezone.utc).timestamp()
+        ts_end = datetime.strptime(date_to, "%Y-%m-%d").replace(tzinfo=timezone.utc).timestamp() + 86400
+        with self._connect() as conn:
+            rows = conn.execute(
+                """SELECT ts, lat, lon, alt_baro, alt_geom, gs, track,
+                          vert_rate, flight, squawk
+                   FROM positions
+                   WHERE icao = ? AND ts >= ? AND ts < ?
+                   ORDER BY ts ASC""",
+                (icao, ts_start, ts_end),
+            ).fetchall()
+        return [dict(r) for r in rows]
+
+    def get_aircraft_by_range(self, date_from: str, date_to: str) -> list[dict]:
+        """Get all aircraft seen in a date range (YYYY-MM-DD, UTC)."""
+        ts_start = datetime.strptime(date_from, "%Y-%m-%d").replace(tzinfo=timezone.utc).timestamp()
+        ts_end = datetime.strptime(date_to, "%Y-%m-%d").replace(tzinfo=timezone.utc).timestamp() + 86400
+        with self._connect() as conn:
+            rows = conn.execute(
+                """SELECT icao,
+                          MAX(flight) as flight,
+                          MAX(category) as category,
+                          MAX(squawk) as squawk,
+                          MIN(ts) as first_seen,
+                          MAX(ts) as last_seen,
+                          COUNT(*) as positions
+                   FROM positions
+                   WHERE ts >= ? AND ts < ?
+                   GROUP BY icao
+                   ORDER BY last_seen DESC""",
+                (ts_start, ts_end),
+            ).fetchall()
+        return [dict(r) for r in rows]
+
     def get_available_dates(self) -> list[str]:
         """Get list of dates that have track data (YYYY-MM-DD, UTC)."""
         with self._connect() as conn:
