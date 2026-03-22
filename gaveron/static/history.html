@@ -82,6 +82,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 /* Permanent UTC time label on checkpoint */
 .cp-time-label { background: rgba(22,33,62,0.85) !important; border: 1px solid #1a5276 !important; color: #00d2ff !important; font-size: 10px !important; font-weight: 600 !important; padding: 1px 4px !important; border-radius: 3px !important; white-space: nowrap !important; }
 .cp-time-label::before { display: none !important; }
+
+/* Aircraft icon at end of track */
+.aircraft-icon { background: none !important; border: none !important; box-shadow: none !important; font-size: 22px !important; text-shadow: 0 0 4px #000, 0 0 6px #000; line-height: 24px !important; text-align: center !important; }
+.aircraft-icon::before { display: none !important; }
 </style>
 </head>
 <body>
@@ -344,13 +348,19 @@ function drawTrack(icao, data, fitBounds) {
   );
   group.addLayer(startMarker);
 
-  // End marker (red circle)
+  // End marker (aircraft icon rotated by heading)
   const endAlt = last[3] === 'ground' ? 'GND' : last[3] + ' ft';
-  const endMarker = L.circleMarker([last[1], last[2]], {
-    radius: 6, color: '#ff3333', fillColor: '#ff3333', fillOpacity: 1, weight: 2
+  const endHeading = last[5] || 0;
+  const endMarker = L.marker([last[1], last[2]], {
+    icon: L.divIcon({
+      className: 'aircraft-icon',
+      html: `<div style="transform:rotate(${endHeading}deg);color:${color}">&#9992;</div>`,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+    })
   });
   endMarker.bindTooltip(
-    `<div class="checkpoint-tooltip"><span class="cp-time">END ${fmtUTC(baseTs + last[0])}</span><br>${callsign} | ${endAlt}</div>`,
+    `<div class="checkpoint-tooltip"><span class="cp-time">END ${fmtUTC(baseTs + last[0])}</span><br><b>${callsign}</b><br>${endAlt}</div>`,
     { permanent: false, direction: 'top', className: 'checkpoint-tooltip' }
   );
   group.addLayer(endMarker);
