@@ -187,6 +187,13 @@ function fmtDateUTC(ts) {
   if (!ts) return '';
   return new Date(ts * 1000).toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit', timeZone:'UTC'});
 }
+function fmtFullDateTimeUTC(ts) {
+  if (!ts) return '';
+  const d = new Date(ts * 1000);
+  const date = d.toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit', year:'numeric', timeZone:'UTC'});
+  const time = d.toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit', timeZone:'UTC'}) + ' UTC';
+  return date + '<br>' + time;
+}
 function fmtDateTime(ts) {
   if (!ts) return '—';
   const d = new Date(ts * 1000);
@@ -343,27 +350,10 @@ function drawTrack(icao, data, fitBounds) {
     radius: 6, color: '#00ff00', fillColor: '#00ff00', fillOpacity: 1, weight: 2
   });
   startMarker.bindTooltip(
-    `<div class="checkpoint-tooltip"><span class="cp-time">START ${fmtUTC(baseTs + first[0])}</span><br>${callsign}</div>`,
+    `<div class="checkpoint-tooltip"><span class="cp-time">START<br>${fmtFullDateTimeUTC(baseTs + first[0])}</span><br>${callsign}</div>`,
     { permanent: false, direction: 'top', className: 'checkpoint-tooltip' }
   );
   group.addLayer(startMarker);
-
-  // End marker (aircraft icon rotated by heading)
-  const endAlt = last[3] === 'ground' ? 'GND' : last[3] + ' ft';
-  const endHeading = last[5] || 0;
-  const endMarker = L.marker([last[1], last[2]], {
-    icon: L.divIcon({
-      className: 'aircraft-icon',
-      html: `<div style="transform:rotate(${endHeading}deg);color:${color}">&#9992;</div>`,
-      iconSize: [24, 24],
-      iconAnchor: [12, 12],
-    })
-  });
-  endMarker.bindTooltip(
-    `<div class="checkpoint-tooltip"><span class="cp-time">END ${fmtUTC(baseTs + last[0])}</span><br><b>${callsign}</b><br>${endAlt}</div>`,
-    { permanent: false, direction: 'top', className: 'checkpoint-tooltip' }
-  );
-  group.addLayer(endMarker);
 
   // Permanent callsign label at middle of track
   const midIdx = Math.floor(data.trace.length / 2);
@@ -394,14 +384,17 @@ function drawTrack(icao, data, fitBounds) {
         });
 
         // Permanent small UTC time label
-        cp.bindTooltip(utcTime, {
+        const cpDate = new Date(ts * 1000).toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit', year:'numeric', timeZone:'UTC'});
+        const cpTime = new Date(ts * 1000).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit', timeZone:'UTC'}) + ' UTC';
+        const cpLabel = `${cpDate}<br>${cpTime}`;
+        cp.bindTooltip(cpLabel, {
           permanent: true, direction: 'right', className: 'cp-time-label', offset: [6, 0]
         });
 
         // Detailed popup on hover (via popup instead)
         cp.bindPopup(
           `<div class="checkpoint-tooltip">` +
-          `<span class="cp-time">${utcTime}</span> ${fmtDateUTC(ts)}<br>` +
+          `<span class="cp-time">${fmtFullDateTimeUTC(ts)}</span><br>` +
           `<b>${callsign}</b><br>` +
           `<span class="cp-alt">${alt}</span> | <span class="cp-spd">${spd}</span>` +
           (vr ? ` | ${vr}` : '') +
@@ -413,6 +406,32 @@ function drawTrack(icao, data, fitBounds) {
       }
     }
   }
+
+  // End marker — bearing from previous trace point to last (continues the track line)
+  const endAlt = last[3] === 'ground' ? 'GND' : last[3] + ' ft';
+  let endHeading = last[5] || 0;
+  if (data.trace.length >= 2) {
+    const prev = data.trace[data.trace.length - 2];
+    const dLon = (last[2] - prev[2]) * Math.PI / 180;
+    const lat1 = prev[1] * Math.PI / 180;
+    const lat2 = last[1] * Math.PI / 180;
+    const y = Math.sin(dLon) * Math.cos(lat2);
+    const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+    endHeading = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+  }
+  const endMarker = L.marker([last[1], last[2]], {
+    icon: L.divIcon({
+      className: 'aircraft-icon',
+      html: `<div style="transform:rotate(${endHeading + 180}deg);color:${color}">&#9992;</div>`,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+    })
+  });
+  endMarker.bindTooltip(
+    `<div class="checkpoint-tooltip"><span class="cp-time">END<br>${fmtFullDateTimeUTC(baseTs + last[0])}</span><br><b>${callsign}</b><br>${endAlt}</div>`,
+    { permanent: false, direction: 'top', className: 'checkpoint-tooltip' }
+  );
+  group.addLayer(endMarker);
 
   group.addTo(map);
   trackLayers[icao] = group;
